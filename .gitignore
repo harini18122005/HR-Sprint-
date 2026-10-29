@@ -1,0 +1,23 @@
+# Operating System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment and secrets
+.env
+.env.local
+*.env
+
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Build artifacts
+dist/
+build/
+.next/
+out/
