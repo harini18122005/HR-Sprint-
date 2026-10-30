@@ -1,0 +1,22 @@
+ACME GLOBAL TECHNOLOGIES - CODE OF BUSINESS CONDUCT AND ETHICS
+DISCLAIMER: FICTIONAL HR POLICY - FOR DEMONSTRATION AND TESTING PURPOSES ONLY.
+Document ID: doc_conduct_ethics_2026_v1
+Policy Category: code_of_conduct
+Effective Date: 2026-01-01
+Version: 1.2
+Applicability: All Acme Global employees, contractors, and corporate officers.
+
+SECTION 1: COMMITMENT TO INTEGRITY AND RESPECT
+Acme Global Technologies requires all workforce members to demonstrate the highest standards of business honesty, ethical behavior, and mutual respect. Discrimination, harassment, bullying, and retaliation of any form will result in disciplinary action up to and including immediate termination of employment.
+
+SECTION 2: CONFIDENTIALITY AND DATA PROTECTION
+Employees must protect all proprietary trade secrets, customer records, technical source code, and employee personal data. Non-disclosure obligations persist even after separation from Acme Global. Company communication channels and workstations are intended for business use and may be monitored in accordance with applicable laws.
+
+SECTION 3: CONFLICTS OF INTEREST
+Employees must avoid any personal financial investment, secondary commercial employment, or outside activity that competes with Acme Global or compromises objective business judgment. Outside consulting or board positions require advance approval from the Legal and People Operations teams.
+
+SECTION 4: GIFTS, ENTERTAINMENT, AND ANTI-BRIBERY
+Workforce members may not accept gifts, services, or hospitality exceeding $50 in aggregate value per calendar year from vendors, clients, or business partners. Offering or accepting improper payments, kickbacks, or bribes to or from any public official or private entity is strictly illegal and categorically prohibited.
+
+SECTION 5: REPORTING AND WHISTLEBLOWER PROTECTION
+Any employee who observes or suspects a violation of this code should report it directly to People Operations, their manager, or the confidential Ethics Hotline at ethics@fictional-acme.test. Acme Global strictly enforces an anti-retaliation policy for all good-faith disclosures.

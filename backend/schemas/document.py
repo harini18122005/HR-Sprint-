@@ -10,6 +10,7 @@ class PolicyCategory(str, Enum):
     """Fictional company HR policy domain categories."""
 
     LEAVE = "leave"
+    ATTENDANCE = "attendance"
     BENEFITS = "benefits"
     REMOTE_WORK = "remote_work"
     CODE_OF_CONDUCT = "code_of_conduct"
