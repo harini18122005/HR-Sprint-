@@ -1,5 +1,10 @@
 """Ingestion module for HR policy documents."""
 
+from .chunker import (
+    ChunkingConfig,
+    PolicyChunker,
+    chunk_policy_document,
+)
 from .extractor import (
     ExtractedDocument,
     ExtractionError,
@@ -23,4 +28,7 @@ __all__ = [
     "PDFDocumentExtractor",
     "PolicyDocumentExtractor",
     "extract_policy_document",
+    "ChunkingConfig",
+    "PolicyChunker",
+    "chunk_policy_document",
 ]
