@@ -18,14 +18,21 @@ backend/
 │   └── chunker.py              # Sentence & boundary-aware text chunking with overlap
 ├── retrieval/                  # Policy chunk search and ranking
 │   └── retriever.py             # PolicyRetriever with pluggable ranking strategy and BM25
+├── generation/                 # Source-grounded answer generation
+│   ├── __init__.py              # Public answer-generation API
+│   ├── answer_generator.py      # Structured answers, citations, and evidence checks
+│   ├── prompts.py               # Evidence context and untrusted-policy instructions
+│   └── providers.py             # Provider interface and OpenAI Responses API adapter
 ├── docs/                       # Technical specifications & documentation
 │   ├── ingestion_schema.md     # Ingestion lifecycle, schemas, validation & chunking rules
-│   └── retrieval.md             # Lexical retrieval design, usage & limitations
-└── tests/                      # Automated test suites (52 unit tests)
+│   ├── retrieval.md             # Lexical retrieval design, usage & limitations
+│   └── generation.md            # Grounding, citations, provider setup & limitations
+└── tests/                      # Automated test suites (68 unit tests)
     ├── test_ingestion_schema.py   # Schema & metadata validation tests (10 tests)
     ├── test_document_extraction.py# Text extraction, normalization & provenance tests (15 tests)
     ├── test_text_chunking.py      # Text chunking, overlap & provenance tests (13 tests)
-    └── test_policy_retrieval.py   # Ranking, filtering & traceability tests (14 tests)
+    ├── test_policy_retrieval.py   # Ranking, filtering & traceability tests (14 tests)
+    └── test_answer_generation.py  # Grounding, provider errors & citation tests (16 tests)
 ```
 
 ---
@@ -57,9 +64,17 @@ The text chunking module (`backend/ingestion/chunker.py`) uses sensible defaults
 
 ---
 
+## RAG Answer Generation
+
+`backend/generation/` turns retrieved chunks into short, cited answers. Every generated claim must include an exact quote from a retrieved chunk; the service validates chunk IDs and quotes and builds citations from the original source metadata. It abstains when there are no results or the provider reports insufficient evidence. Live generation uses the official OpenAI Python SDK and Responses API; tests use mocks and make no API calls. See [docs/generation.md](docs/generation.md) for setup, behavior, and limitations.
+
+Install the provider dependency with `python -m pip install -r requirements.txt`. Set `OPENAI_API_KEY` in the environment to enable live generation. `OPENAI_MODEL` optionally overrides the default model. `.env.example` contains placeholder configuration only; never commit a real key.
+
+---
+
 ## Running Tests
 
-All unit tests rely purely on the Python standard library with zero external dependencies:
+Tests use `unittest` and mocked providers, so the test suite makes no live API calls:
 
 ```bash
 # Run all unit tests
@@ -76,4 +91,7 @@ python -m unittest backend/tests/test_ingestion_schema.py -v
 
 # Run policy retrieval tests specifically
 python -m unittest backend.tests.test_policy_retrieval -v
+
+# Run answer generation tests specifically
+python -m unittest backend.tests.test_answer_generation -v
 ```
