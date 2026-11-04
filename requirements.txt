@@ -1,0 +1,2 @@
+# Official OpenAI Python SDK; tests use mocked providers and make no API calls.
+openai>=1.66.0
