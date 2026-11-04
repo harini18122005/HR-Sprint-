@@ -152,11 +152,19 @@ chunks = chunker.chunk_document(extracted_doc, policy_doc)
          ▼
 [List[PolicyChunk]] (Ready for Indexing)
          │
-         ▼ (Future Day 5 Milestone)
+         ▼
+[PolicyRetriever.retrieve(question)]
+         ├─► BM25 lexical relevance scoring
+         ├─► Optional source-metadata category filter
+         ├─► Top-k ranked chunk results with source traceability
+         ▼
+[RetrievedPolicyChunk Results] (Source text and metadata preserved)
+         │
+         ▼ (Future milestone)
 ┌─────────────────────────────────────────────────────────────┐
-│ 1. Embedding Generation & Vector Database Indexing          │
-│ 2. Semantic Search & Source-Grounded LLM Retrieval          │
-│ 3. API Query Serving Layer                                  │
+│ 1. Optional dense or hybrid retrieval                       │
+│ 2. Source-grounded answer generation                        │
+│ 3. API query serving layer                                  │
 └─────────────────────────────────────────────────────────────┘
 ```
 

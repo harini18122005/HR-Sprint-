@@ -16,12 +16,16 @@ backend/
 │   ├── service.py              # prepare_policy_document service entrypoint
 │   ├── extractor.py            # Text & PDF document extraction & normalization
 │   └── chunker.py              # Sentence & boundary-aware text chunking with overlap
+├── retrieval/                  # Policy chunk search and ranking
+│   └── retriever.py             # PolicyRetriever with pluggable ranking strategy and BM25
 ├── docs/                       # Technical specifications & documentation
-│   └── ingestion_schema.md     # Ingestion lifecycle, schemas, validation & chunking rules
-└── tests/                      # Automated test suites (38 unit tests)
+│   ├── ingestion_schema.md     # Ingestion lifecycle, schemas, validation & chunking rules
+│   └── retrieval.md             # Lexical retrieval design, usage & limitations
+└── tests/                      # Automated test suites (52 unit tests)
     ├── test_ingestion_schema.py   # Schema & metadata validation tests (10 tests)
     ├── test_document_extraction.py# Text extraction, normalization & provenance tests (15 tests)
-    └── test_text_chunking.py      # Text chunking, overlap & provenance tests (13 tests)
+    ├── test_text_chunking.py      # Text chunking, overlap & provenance tests (13 tests)
+    └── test_policy_retrieval.py   # Ranking, filtering & traceability tests (14 tests)
 ```
 
 ---
@@ -47,6 +51,12 @@ The text chunking module (`backend/ingestion/chunker.py`) uses sensible defaults
 
 ---
 
+## Policy Retrieval
+
+`backend/retrieval/` ranks existing `PolicyChunk` objects with a deterministic BM25 lexical baseline. It supports configurable `top_k`, optional category filtering from `SourceMetadata`, and returns scored results that retain the original chunk and source fields. It does not perform semantic search or generate answers. See [docs/retrieval.md](docs/retrieval.md) for the ranking details and a complete usage example.
+
+---
+
 ## Running Tests
 
 All unit tests rely purely on the Python standard library with zero external dependencies:
@@ -63,4 +73,7 @@ python -m unittest backend/tests/test_document_extraction.py -v
 
 # Run schema validation tests specifically
 python -m unittest backend/tests/test_ingestion_schema.py -v
+
+# Run policy retrieval tests specifically
+python -m unittest backend.tests.test_policy_retrieval -v
 ```
