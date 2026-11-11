@@ -1,2 +1,9 @@
 # Official OpenAI Python SDK; tests use mocked providers and make no API calls.
 openai>=1.66.0
+
+# HTTP API and local ASGI server.
+fastapi>=0.116.1,<1.0
+uvicorn>=0.35.0,<1.0
+
+# FastAPI TestClient transport used by unittest API coverage.
+httpx>=0.28.0,<1.0

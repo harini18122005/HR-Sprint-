@@ -99,11 +99,15 @@
     }
     .message-row.user .bubble { color: white; background: var(--blue); border-radius: 15px 15px 5px 15px; }
     .citation {
-      display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding-top: 10px;
-      border-top: 1px solid #e0e7f1; color: #61718b; font-size: 11px; line-height: 1.5;
+      display: flex; align-items: flex-start; gap: 8px; margin: 0;
+      color: #61718b; font-size: 11px; line-height: 1.5;
     }
     .citation svg { flex: 0 0 14px; width: 14px; height: 14px; margin-top: 1px; color: var(--blue); }
     .citation strong { color: #344764; font-weight: 700; }
+    .citation-list { display: grid; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #e0e7f1; }
+    .citation-details { min-width: 0; display: grid; gap: 3px; }
+    .citation-meta { color: #71809a; font-size: 10px; overflow-wrap: anywhere; }
+    .citation-quote { margin: 3px 0 0; padding-left: 9px; border-left: 2px solid #cbd9f6; color: #65758e; font-size: 11px; }
     .suggestions { padding: 0 27px 20px 64px; }
     .suggestions-heading { margin: 0 0 10px; color: #7b89a0; font-size: 11px; font-weight: 650; }
     .suggestion-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
@@ -125,6 +129,9 @@
       color: white; background: var(--blue); border: 0; border-radius: 10px; transition: background .15s, transform .15s;
     }
     .send-button:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    .send-button:disabled, .suggestion:disabled, .reset-button:disabled { cursor: wait; opacity: .58; transform: none; }
+    .loading-bubble::after { content: ""; display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-radius: 50%; background: #7d95bf; animation: pulse 1s infinite alternate; }
+    @keyframes pulse { to { opacity: .25; } }
     .send-button:focus-visible, .suggestion:focus-visible, .reset-button:focus-visible { outline: 3px solid rgba(36,89,211,.27); outline-offset: 2px; }
     .send-button svg { width: 17px; height: 17px; }
     .disclaimer { margin: 9px 0 0; text-align: center; color: #98a3b3; font-size: 10px; }
@@ -162,7 +169,7 @@
         </span>
         <span><p class="brand-name">PeopleDesk AI</p><p class="brand-subtitle">Your HR Policy Assistant</p></span>
       </a>
-      <span class="prototype-tag"><span class="prototype-dot"></span>UX Prototype – Sample Responses</span>
+      <span class="prototype-tag"><span class="prototype-dot"></span>UX Prototype · Backend API</span>
     </header>
 
     <main>
@@ -176,7 +183,7 @@
         <div class="chat-top">
           <div class="assistant-identity">
             <span class="assistant-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5a7.5 7.5 0 0 0-7.5 7.5v3.2A2.8 2.8 0 0 0 7.3 17H8v-6H7.3c-.7 0-1.3.2-1.8.6m10.5 5.3h.7a2.8 2.8 0 0 0 2.8-2.8V11a7.5 7.5 0 0 0-15 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9.5 19h3.2a2 2 0 0 0 2-2v-.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
-            <div><p class="assistant-title">PeopleDesk Assistant</p><div class="assistant-status"><span class="status-dot"></span>Prototype ready</div></div>
+            <div><p class="assistant-title">PeopleDesk Assistant</p><div class="assistant-status"><span class="status-dot"></span>Policy service integration</div></div>
           </div>
           <button class="reset-button" id="resetButton" type="button" aria-label="Clear chat and start over"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7v5h5M5.6 15a7 7 0 1 0 .1-6.1L4 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>New chat</button>
         </div>
@@ -200,131 +207,17 @@
 
         <div class="composer-wrap">
           <form class="composer" id="chatForm">
-            <input id="questionInput" type="text" autocomplete="off" aria-label="Ask a policy question" placeholder="Ask a question about your HR policies…">
-            <button class="send-button" type="submit" aria-label="Send question"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.2 18-3.9-7.9L2 9.2 21 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M21 3 9.9 13.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+            <input id="questionInput" type="text" maxlength="2000" autocomplete="off" aria-label="Ask a policy question" placeholder="Ask a question about your HR policies…">
+            <button class="send-button" id="sendButton" type="submit" aria-label="Send question"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 3-7.2 18-3.9-7.9L2 9.2 21 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M21 3 9.9 13.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
           </form>
-          <p class="disclaimer">This is a UX prototype with predefined sample responses. It is not connected to a live AI model.</p>
+          <p class="disclaimer">Answers come from retrieved policy evidence. Live answer generation requires a configured OPENAI_API_KEY.</p>
         </div>
       </section>
     </main>
     <footer>Made to make workplace answers easier to find.</footer>
   </div>
 
-  <script>
-    (() => {
-      const chatBody = document.getElementById('chatBody');
-      const input = document.getElementById('questionInput');
-      const form = document.getElementById('chatForm');
-      const resetButton = document.getElementById('resetButton');
-      const assistantIcon = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5a7.5 7.5 0 0 0-7.5 7.5v3.2A2.8 2.8 0 0 0 7.3 17H8v-6H7.3c-.7 0-1.3.2-1.8.6m10.5 5.3h.7a2.8 2.8 0 0 0 2.8-2.8V11a7.5 7.5 0 0 0-15 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9.5 19h3.2a2 2 0 0 0 2-2v-.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
-      const citationIcon = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8.5 12.5 11 15a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.2 1.2M15.5 11.5 13 9a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1.2-1.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      const samples = [
-        {
-          match: /parental|maternity|paternity|adoption|foster leave/i,
-          answer: 'Eligible employees receive 16 weeks of fully paid parental leave after a birth, adoption, or foster placement. Eligibility requires at least 6 months of continuous full-time service. Leave must be used within 12 months and may be split into up to two blocks with manager agreement.',
-          citations: [['Paid Time Off and Leave Policy', '§4 Parental Leave']]
-        },
-        {
-          match: /benefit|health insurance|dental|vision|401\s*\(?k\)?|retirement|wellness|stipend|tuition|home office/i,
-          answer: 'The sample guide includes health, dental, and vision coverage; a 401(k) employer match; a monthly wellness allowance; a home office setup grant for eligible new remote and hybrid hires; and tuition or certification assistance for eligible employees. Eligibility and plan details vary by benefit.',
-          citations: [
-            ['Comprehensive Employee Benefits Guide', '§2 Health, Dental, and Vision Coverage'],
-            ['Comprehensive Employee Benefits Guide', '§3 Retirement and 401(k) Savings Plan'],
-            ['Comprehensive Employee Benefits Guide', '§4 Wellness and Home Office Stipends'],
-            ['Comprehensive Employee Benefits Guide', '§5 Professional Growth and Tuition Assistance']
-          ]
-        },
-        {
-          match: /attendance|punctual|late|tardiness|working hours|core hours|absence|schedule|clock.?in/i,
-          answer: 'The sample policy describes a 40-hour standard full-time workweek, usually Monday through Friday, with core collaboration hours from 10:00 AM to 3:00 PM local time Monday through Thursday. If you expect to be more than 15 minutes late or cannot attend, notify your manager by 8:30 AM local time or at least 30 minutes before your scheduled start.',
-          citations: [
-            ['Workplace Attendance and Working Hours Policy', '§2 Standard Working Hours and Core Collaboration Window'],
-            ['Workplace Attendance and Working Hours Policy', '§4.1 Notice of Absence or Late Arrival']
-          ]
-        },
-        {
-          match: /pto|paid time off|vacation|leave days|time off|sick leave/i,
-          answer: 'For full-time regular employees, annual PTO accrual depends on completed service: 15 days for 0–2 years, 20 days for 3–5 years, and 25 days for 6 or more years. Part-time employees working at least 20 hours per week accrue PTO pro rata. Your individual balance may differ, so check the HR Portal for your current balance.',
-          citations: [['Paid Time Off and Leave Policy', '§2.1 PTO Accrual Rates']]
-        }
-      ];
-
-      function addMessage(text, kind, citations) {
-        const row = document.createElement('div');
-        row.className = `message-row ${kind}`;
-        if (kind === 'assistant') {
-          const avatar = document.createElement('span');
-          avatar.className = 'mini-avatar';
-          avatar.setAttribute('aria-hidden', 'true');
-          avatar.innerHTML = assistantIcon;
-          row.appendChild(avatar);
-        }
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-        bubble.textContent = text;
-        if (citations && citations.length) {
-          const citationBox = document.createElement('div');
-          citationBox.className = 'citation';
-          citationBox.innerHTML = citationIcon;
-          const sourceText = document.createElement('span');
-          sourceText.append('Source: ');
-          citations.forEach(([documentName, section], index) => {
-            if (index) sourceText.append(' · ');
-            const label = document.createElement('span');
-            const strong = document.createElement('strong');
-            strong.textContent = documentName;
-            label.append(strong, document.createTextNode(`, ${section}`));
-            sourceText.append(label);
-          });
-          citationBox.appendChild(sourceText);
-          bubble.appendChild(citationBox);
-        }
-        row.appendChild(bubble);
-        chatBody.appendChild(row);
-        chatBody.scrollTop = chatBody.scrollHeight;
-      }
-
-      function respond(question) {
-        const cleanQuestion = question.trim();
-        if (!cleanQuestion) return;
-        addMessage(cleanQuestion, 'user');
-        const sample = samples.find((item) => item.match.test(cleanQuestion));
-        if (sample) {
-          addMessage(sample.answer, 'assistant', sample.citations);
-        } else {
-          addMessage('I couldn’t find a matching sample response in the available prototype policies. Please contact HR for help with this question.', 'assistant');
-        }
-      }
-
-      form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        respond(input.value);
-        input.value = '';
-        input.focus();
-      });
-
-      document.querySelectorAll('.suggestion').forEach((button) => {
-        button.addEventListener('click', () => respond(button.dataset.question));
-      });
-
-      resetButton.addEventListener('click', () => {
-        chatBody.replaceChildren();
-        const row = document.createElement('div');
-        row.className = 'message-row';
-        row.dataset.welcome = 'true';
-        const avatar = document.createElement('span');
-        avatar.className = 'mini-avatar';
-        avatar.setAttribute('aria-hidden', 'true');
-        avatar.innerHTML = assistantIcon;
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-        bubble.textContent = 'Hi! How can I help you with your HR policies today?';
-        row.append(avatar, bubble);
-        chatBody.appendChild(row);
-        input.value = '';
-        input.focus();
-      });
-    })();
-  </script>
+  <script src="api-config.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html>
