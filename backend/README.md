@@ -1,6 +1,6 @@
 # Backend Services — PeopleDesk AI (HR Policy AI Assistant)
 
-This directory contains the server-side architecture, data schemas, ingestion pipeline, document text extraction, and chunking modules for the source-grounded HR knowledge assistant.
+This directory contains the server-side architecture, data schemas, ingestion pipeline, lexical retrieval, grounded answer generation, and FastAPI integration for the HR policy assistant.
 
 ---
 
@@ -23,16 +23,21 @@ backend/
 │   ├── answer_generator.py      # Structured answers, citations, and evidence checks
 │   ├── prompts.py               # Evidence context and untrusted-policy instructions
 │   └── providers.py             # Provider interface and OpenAI Responses API adapter
+├── api/                          # FastAPI integration for the existing pipeline
+│   ├── app.py                    # /api/chat, /api/health, CORS, and error mapping
+│   └── service.py                # Loads sample policies through existing ingestion code
 ├── docs/                       # Technical specifications & documentation
 │   ├── ingestion_schema.md     # Ingestion lifecycle, schemas, validation & chunking rules
 │   ├── retrieval.md             # Lexical retrieval design, usage & limitations
-│   └── generation.md            # Grounding, citations, provider setup & limitations
-└── tests/                      # Automated test suites (68 unit tests)
+│   ├── generation.md            # Grounding, citations, provider setup & limitations
+│   └── api.md                    # HTTP endpoints and frontend setup
+└── tests/                      # unittest suites for schemas, ingestion, retrieval, generation, and API (79 backend tests)
     ├── test_ingestion_schema.py   # Schema & metadata validation tests (10 tests)
     ├── test_document_extraction.py# Text extraction, normalization & provenance tests (15 tests)
     ├── test_text_chunking.py      # Text chunking, overlap & provenance tests (13 tests)
     ├── test_policy_retrieval.py   # Ranking, filtering & traceability tests (14 tests)
-    └── test_answer_generation.py  # Grounding, provider errors & citation tests (16 tests)
+    ├── test_answer_generation.py  # Grounding, provider errors & citation tests (16 tests)
+    └── test_api.py                 # API validation, integration, CORS, and error tests
 ```
 
 ---
@@ -72,6 +77,22 @@ Install the provider dependency with `python -m pip install -r requirements.txt`
 
 ---
 
+## Frontend and Backend API
+
+`backend/api/` exposes the existing pipeline through FastAPI. `GET /api/health` reports service and provider configuration. `POST /api/chat` validates a question, retrieves from the sample policies using `PolicyRetriever`, and passes those actual results to `AnswerGenerator`. Responses include the answer or abstention, status, and citations with source filename, document ID, chunk ID, section, exact quote, and page number only when available.
+
+If `OPENAI_API_KEY` is missing, chat requests return HTTP 503 with an explicit `not_configured` status; the API never substitutes mock policy answers. Provider errors return HTTP 502. The Day 7 static frontend calls the API and renders loading, answers, citations, abstention, and errors. It reads the browser-visible backend origin from `PEOPLEDESK_API_BASE_URL` when `python frontend/build_config.py` generates `docs/api-config.js`. See [docs/api.md](docs/api.md) and [the frontend README](../frontend/README.md) for setup and the full request flow.
+
+Install dependencies with `python -m pip install -r requirements.txt`, then run from the repository root:
+
+```bash
+python -m uvicorn backend.api.app:app --reload --host 127.0.0.1 --port 8000
+```
+
+Set `FRONTEND_ORIGINS` to the exact comma-separated browser origins allowed by CORS. The default permits `http://localhost:4173` and `http://127.0.0.1:4173`. This milestone does not deploy the backend.
+
+---
+
 ## Running Tests
 
 Tests use `unittest` and mocked providers, so the test suite makes no live API calls:
@@ -94,4 +115,11 @@ python -m unittest backend.tests.test_policy_retrieval -v
 
 # Run answer generation tests specifically
 python -m unittest backend.tests.test_answer_generation -v
+
+# Run API integration tests
+python -m unittest backend.tests.test_api -v
+
+# Run static frontend interaction and config checks
+node --test frontend/tests/chat.test.cjs
+python -m unittest frontend.tests.test_build_config -v
 ```
