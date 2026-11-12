@@ -129,6 +129,19 @@ class PolicyApiTests(unittest.TestCase):
             422,
         )
 
+    def test_non_object_and_malformed_json_requests_are_rejected(self) -> None:
+        client = self.build_client()
+
+        array_response = client.post("/api/chat", json=[{"question": "PTO policy?"}])
+        malformed_response = client.post(
+            "/api/chat",
+            content='{"question":',
+            headers={"Content-Type": "application/json"},
+        )
+
+        self.assertEqual(array_response.status_code, 422)
+        self.assertEqual(malformed_response.status_code, 422)
+
     def test_no_matching_evidence_returns_abstention(self) -> None:
         provider = StaticProvider("must not be called")
         client = self.build_client(provider)

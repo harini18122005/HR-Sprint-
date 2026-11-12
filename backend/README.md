@@ -31,13 +31,14 @@ backend/
 │   ├── retrieval.md             # Lexical retrieval design, usage & limitations
 │   ├── generation.md            # Grounding, citations, provider setup & limitations
 │   └── api.md                    # HTTP endpoints and frontend setup
-└── tests/                      # unittest suites for schemas, ingestion, retrieval, generation, and API (79 backend tests)
+└── tests/                      # unittest suites for schemas, ingestion, retrieval, generation, and API (87 backend tests)
     ├── test_ingestion_schema.py   # Schema & metadata validation tests (10 tests)
     ├── test_document_extraction.py# Text extraction, normalization & provenance tests (15 tests)
     ├── test_text_chunking.py      # Text chunking, overlap & provenance tests (13 tests)
     ├── test_policy_retrieval.py   # Ranking, filtering & traceability tests (14 tests)
     ├── test_answer_generation.py  # Grounding, provider errors & citation tests (16 tests)
-    └── test_api.py                 # API validation, integration, CORS, and error tests
+    ├── test_api.py                 # API validation, integration, CORS, and error tests
+    └── test_end_to_end_evaluation.py # Full chat workflow and sample-policy evaluation
 ```
 
 ---
@@ -119,7 +120,12 @@ python -m unittest backend.tests.test_answer_generation -v
 # Run API integration tests
 python -m unittest backend.tests.test_api -v
 
+# End-to-end workflow and sample-policy retrieval evaluation
+python -m unittest backend.tests.test_end_to_end_evaluation -v
+
 # Run static frontend interaction and config checks
 node --test frontend/tests/chat.test.cjs
 python -m unittest frontend.tests.test_build_config -v
 ```
+
+See [Testing and Evaluation](docs/testing_evaluation.md) for the workflow coverage, failure cases, limitations, and interpretation of mocked provider results.
