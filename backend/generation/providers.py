@@ -65,7 +65,14 @@ class OpenAIResponsesProvider:
     ) -> None:
         self._api_key = api_key.strip() if api_key else None
         self._client = client
-        self._model = model
+        self._model = model.strip() if model and model.strip() else None
+
+    def __repr__(self) -> str:
+        """Keep credentials out of diagnostic output and accidental logs."""
+        return (
+            f"{type(self).__name__}(api_key='[redacted]', "
+            f"configured={self.is_configured!r}, model={self._model!r})"
+        )
 
     @classmethod
     def from_environment(
