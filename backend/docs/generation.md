@@ -1,6 +1,6 @@
 # RAG Answer Generation
 
-The answer-generation service consumes results from the Day 5 `PolicyRetriever`. It does not retrieve documents itself or make a claim that was not returned as a cited claim by the provider. No frontend or API endpoint is part of this milestone.
+The answer-generation service consumes results from the Day 5 `PolicyRetriever`. The existing FastAPI chat endpoint connects retrieval to this service. The OpenAI provider is optional and uses the official Responses API; no UI or retrieval architecture changes are needed to enable it.
 
 ## Flow
 
@@ -39,7 +39,7 @@ for citation in result.citations:
 
 ## OpenAI provider configuration
 
-The optional live provider uses the official OpenAI Python SDK and the Responses API. The SDK is imported lazily; tests and unconfigured installations do not need to import it. See the [official text generation guide](https://developers.openai.com/api/docs/guides/text?lang=python) and [official Python SDK setup](https://developers.openai.com/api/docs/libraries).
+The optional live provider uses the official OpenAI Python SDK and the Responses API. The SDK is imported lazily; tests and unconfigured installations do not need to import it. See the [official text generation guide](https://developers.openai.com/api/docs/guides/text?lang=python), [official Python SDK setup](https://developers.openai.com/api/docs/libraries), and [model catalog](https://developers.openai.com/api/docs/models).
 
 Install the dependency:
 
@@ -50,11 +50,23 @@ python -m pip install -r requirements.txt
 Set these variables in the process environment or your deployment configuration:
 
 - `OPENAI_API_KEY`: Required for live generation. Never commit a real key.
-- `OPENAI_MODEL`: Optional model override. The default is `gpt-6-astra`.
+- `OPENAI_MODEL`: Optional model override. The default is `gpt-6-astra`; choose a model enabled for your OpenAI project and compatible with the Responses API.
 
-`.env.example` contains placeholders only. The application reads environment variables directly and does not load `.env` files automatically. If the API key is missing, the result status is `not_configured`, and no live answer is claimed.
+`.env.example` contains placeholders only. The application reads environment variables directly and does not load `.env` files automatically. Set the variables in the backend process environment or your deployment's secret configuration. Keep the key server-side; never put it in `docs/api-config.js`, browser code, screenshots, source control, or chat logs. If the API key is missing, the API reports `not_configured`, and no live answer is claimed.
 
 `GenerationConfig` controls model, maximum output tokens, and request timeout. Provider retries are disabled so timeouts and errors return a safe status instead of issuing repeat calls.
+
+## Opt-in live verification
+
+The automated test suite does not call OpenAI. To explicitly verify the real provider against the checked-in sample policies, install backend requirements, configure `OPENAI_API_KEY` in the current private terminal environment, then run from the repository root:
+
+```bash
+python -m backend.scripts.live_generation_check
+```
+
+On Windows PowerShell, configure the key for the current terminal session with `$env:OPENAI_API_KEY = "your_key_here"` before running the command. Replace the placeholder privately; do not save a real key in a project file. `OPENAI_MODEL` may also be set in the environment. The check sends four policy questions and one unsupported question through the existing FastAPI app, real OpenAI provider, retrieval, answer validation, and citation response path. It verifies returned citations against retrieved source chunks and expects the unsupported question to abstain. This makes five real API requests and may incur usage charges. If the key or SDK is missing, the script exits before making a request. Provider failures print only sanitized status details.
+
+The live check is a manual, opt-in operational script and is not discovered by `unittest`. A successful run is evidence for those example requests only; mocked tests do not demonstrate live generation.
 
 ## Grounding checks and limitations
 

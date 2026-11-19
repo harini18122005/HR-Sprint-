@@ -74,7 +74,7 @@ The text chunking module (`backend/ingestion/chunker.py`) uses sensible defaults
 
 `backend/generation/` turns retrieved chunks into short, cited answers. Every generated claim must include an exact quote from a retrieved chunk; the service validates chunk IDs and quotes and builds citations from the original source metadata. It abstains when there are no results or the provider reports insufficient evidence. Live generation uses the official OpenAI Python SDK and Responses API; tests use mocks and make no API calls. See [docs/generation.md](docs/generation.md) for setup, behavior, and limitations.
 
-Install the provider dependency with `python -m pip install -r requirements.txt`. Set `OPENAI_API_KEY` in the environment to enable live generation. `OPENAI_MODEL` optionally overrides the default model. `.env.example` contains placeholder configuration only; never commit a real key.
+Install the provider dependency with `python -m pip install -r requirements.txt`. Set `OPENAI_API_KEY` in the backend process environment to enable live generation. `OPENAI_MODEL` optionally overrides the default model (`gpt-6-astra`). `.env.example` contains placeholder configuration only; the application does not load `.env` files automatically. Never commit a real key or expose it in frontend code. Automated tests use mocks and make no API calls. For an explicit real-provider check against the sample policies, configure the key and run `python -m backend.scripts.live_generation_check` from the repository root; this sends five real requests and may incur usage charges. Full instructions and safeguards are in [docs/generation.md](docs/generation.md#opt-in-live-verification).
 
 ---
 
