@@ -105,7 +105,7 @@ class OpenAIProviderTests(unittest.TestCase):
             def create(self, **kwargs):
                 raise APITimeoutError("private timeout detail")
 
-        fake_sdk = SimpleNamespace(APITimeoutError=APITimeoutError)
+        fake_sdk = SimpleNamespace(APIConnectionError=(), APITimeoutError=APITimeoutError)
         provider = OpenAIResponsesProvider(
             "placeholder",
             client=SimpleNamespace(responses=Responses()),
@@ -120,6 +120,67 @@ class OpenAIProviderTests(unittest.TestCase):
                 )
 
         self.assertNotIn("private timeout detail", str(raised.exception))
+        self.assertEqual(provider.last_diagnostic.category, "timeout")
+
+    def test_http_errors_are_classified_without_exposing_messages(self) -> None:
+        class APIError(Exception):
+            def __init__(self, status_code, code):
+                super().__init__("private message containing test-secret")
+                self.status_code = status_code
+                self.code = code
+
+        scenarios = (
+            (401, "invalid_api_key", "authentication"),
+            (403, "model_not_allowed", "permission_or_model_access"),
+            (404, "model_not_found", "model_unavailable_or_endpoint_not_found"),
+            (429, "insufficient_quota", "billing_or_quota"),
+            (429, "rate_limit_exceeded", "rate_limit"),
+            (400, "unsupported_parameter", "invalid_request"),
+            (503, None, "provider_server_error"),
+        )
+
+        for status, code, expected_category in scenarios:
+            with self.subTest(status=status, code=code):
+                class Responses:
+                    def create(self, **kwargs):
+                        raise APIError(status, code)
+
+                provider = OpenAIResponsesProvider(
+                    "test-secret",
+                    client=SimpleNamespace(responses=Responses()),
+                )
+                with self.assertLogs("backend.generation.providers", level="WARNING") as captured:
+                    with self.assertRaises(ProviderError):
+                        provider.generate(
+                            instructions="instructions",
+                            input="input",
+                            config=GenerationConfig(),
+                        )
+
+                diagnostic = provider.last_diagnostic
+                self.assertEqual(diagnostic.category, expected_category)
+                self.assertEqual(diagnostic.http_status, status)
+                self.assertNotIn("private message", repr(diagnostic.as_dict()))
+                self.assertNotIn("test-secret", "\n".join(captured.output))
+
+    def test_connection_failure_is_classified_as_network(self) -> None:
+        class Responses:
+            def create(self, **kwargs):
+                raise ConnectionError("private endpoint details")
+
+        provider = OpenAIResponsesProvider(
+            "placeholder",
+            client=SimpleNamespace(responses=Responses()),
+        )
+        with self.assertLogs("backend.generation.providers", level="WARNING"):
+            with self.assertRaises(ProviderError):
+                provider.generate(
+                    instructions="instructions",
+                    input="input",
+                    config=GenerationConfig(),
+                )
+        self.assertEqual(provider.last_diagnostic.category, "network")
+        self.assertNotIn("private endpoint", repr(provider.last_diagnostic.as_dict()))
 
 
 if __name__ == "__main__":

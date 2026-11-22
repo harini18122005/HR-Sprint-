@@ -75,6 +75,7 @@ The live check is a manual, opt-in operational script and is not discovered by `
 - These checks catch invalid sources, fabricated quotes, and unsupported numeric values. They do not prove full natural-language entailment, so HR policy changes should be tested against reviewed examples before production use.
 - The prompt explicitly treats document content as data, not instructions. Prompting and source validation reduce risk but cannot guarantee that every model interpretation is correct.
 - Provider errors, timeouts, and malformed responses return safe statuses with no model text or citations shown.
+- Provider failures are diagnosed server-side using a limited category, SDK exception class, HTTP status, and sanitized API error code. Exception messages, request headers, and API credentials are not logged or returned in chat responses. The opt-in live check prints those same safe fields locally after a failed request so authentication, model access, quota/rate limits, invalid requests, network failures, and upstream errors can be distinguished.
 - Live API behavior was not used by automated tests. The tests use mock providers and make no paid calls.
 
 ## Tests
