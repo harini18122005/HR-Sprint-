@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 _DEFAULT_CORS_ORIGINS = (
     "http://localhost:4173",
     "http://127.0.0.1:4173",
+    "https://harini18122005.github.io",
 )
 _MAX_QUESTION_LENGTH = 2000
 

@@ -90,7 +90,7 @@ Install dependencies with `python -m pip install -r requirements.txt`, then run 
 python -m uvicorn backend.api.app:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Set `FRONTEND_ORIGINS` to the exact comma-separated browser origins allowed by CORS. The default permits `http://localhost:4173` and `http://127.0.0.1:4173`. This milestone does not deploy the backend.
+Set `FRONTEND_ORIGINS` to the exact comma-separated browser origins allowed by CORS. The default permits the local UI at `http://localhost:4173` and `http://127.0.0.1:4173`, plus the published GitHub Pages origin `https://harini18122005.github.io`. This milestone does not deploy the backend.
 
 ---
 

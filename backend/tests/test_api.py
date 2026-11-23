@@ -2,6 +2,7 @@
 
 import json
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -217,6 +218,29 @@ class PolicyApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["access-control-allow-origin"], "http://localhost:4173")
+
+    def test_default_cors_allows_the_published_github_pages_origin(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            app = create_app(
+                retriever=PolicyRetriever(self.chunks, top_k=4),
+                answer_generator=AnswerGenerator(StaticProvider("{}")),
+            )
+        client = TestClient(app)
+
+        response = client.options(
+            "/api/chat",
+            headers={
+                "Origin": "https://harini18122005.github.io",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["access-control-allow-origin"],
+            "https://harini18122005.github.io",
+        )
 
 
 if __name__ == "__main__":
