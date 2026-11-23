@@ -7,6 +7,7 @@ requests and is intentionally excluded from automated test discovery.
 
 import os
 import sys
+import json
 from typing import Any
 
 
@@ -42,14 +43,16 @@ def main() -> int:
 
     chunks = load_sample_policy_chunks()
     retriever = PolicyRetriever(chunks, top_k=4)
-    client = TestClient(create_app(retriever=retriever))
+    application = create_app(retriever=retriever)
+    provider = application.state.answer_generator.provider
+    client = TestClient(application)
     failures = 0
 
     for question in SUPPORTED_QUESTIONS:
         response = client.post("/api/chat", json={"question": question})
         if response.status_code != 200:
             failures += 1
-            _report_failure(question, response)
+            _report_failure(question, response, getattr(provider, "last_diagnostic", None))
             continue
 
         payload: dict[str, Any] = response.json()
@@ -82,14 +85,14 @@ def main() -> int:
             print("FAIL: unsupported question did not safely abstain")
     else:
         failures += 1
-        _report_failure(UNSUPPORTED_QUESTION, response)
+        _report_failure(UNSUPPORTED_QUESTION, response, getattr(provider, "last_diagnostic", None))
 
     print(f"Live check completed: {5 - failures} passed, {failures} failed.")
     return 1 if failures else 0
 
 
-def _report_failure(question: str, response: Any) -> None:
-    """Print only the API's sanitized status/error fields, never request data."""
+def _report_failure(question: str, response: Any, diagnostic: Any = None) -> None:
+    """Print sanitized API status and safe provider metadata, never key or message."""
     try:
         body = response.json()
     except ValueError:
@@ -99,6 +102,8 @@ def _report_failure(question: str, response: Any) -> None:
         detail = {}
     error = body.get("error") or detail.get("error") or "request_failed"
     print(f"FAIL: {question} (HTTP {response.status_code}, {error})")
+    if diagnostic is not None and hasattr(diagnostic, "as_dict"):
+        print("  Provider diagnostic: " + json.dumps(diagnostic.as_dict(), sort_keys=True))
 
 
 if __name__ == "__main__":
