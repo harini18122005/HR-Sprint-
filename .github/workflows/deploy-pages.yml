@@ -1,0 +1,48 @@
+name: Deploy PeopleDesk AI frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "frontend/build_config.py"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      PEOPLEDESK_API_BASE_URL: ${{ vars.PEOPLEDESK_API_BASE_URL }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Validate and generate public API URL config
+        run: |
+          python -c "import os; from frontend.build_config import normalize_api_base_url; url=os.environ.get('PEOPLEDESK_API_BASE_URL', ''); assert url.startswith('https://'), 'Set the PEOPLEDESK_API_BASE_URL repository variable to the deployed HTTPS API origin'; normalize_api_base_url(url)"
+          python frontend/build_config.py
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs
+      - name: Deploy site
+        id: deployment
+        uses: actions/deploy-pages@v4

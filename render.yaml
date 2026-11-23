@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: peopledesk-ai-api
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: python -m pip install -r requirements.txt
+    startCommand: uvicorn backend.api.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-6-astra
+      - key: FRONTEND_ORIGINS
+        value: https://harini18122005.github.io

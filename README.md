@@ -199,5 +199,6 @@ Days 1–9 delivered project setup, schemas and validation, sample policy extrac
 - [Project workflow](docs/project_workflow.md)
 - [Local setup](docs/setup_guide.md)
 - [Mentor demo plan](docs/demo_guide.md)
+- [Viva deployment guide](docs/deployment_guide.md)
 - [Backend overview and technical docs](backend/README.md)
 - [Static frontend setup](frontend/README.md)
